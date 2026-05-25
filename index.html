@@ -1,0 +1,1474 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cristiano Ronaldo Career Journey - S2 Palette</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --ink: #0E2F17;
+      --muted: #4A624A;
+      --paper: #FFFFFF;
+      --panel: #F3FAEF;
+      --line: #B7DFA1;
+      --accent: #2F8F3A;
+      --accent-dark: #176B2C;
+      --route: #7BC043;
+      --gold: #FFD23F;
+      --sky: #F3FAEF;
+      --shadow: 0 18px 50px rgba(23, 107, 44, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      overflow: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      background: var(--paper);
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #DDEED4;
+    }
+
+    .leaflet-container {
+      font: inherit;
+      background: #DDEED4;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px;
+    }
+
+    .brand {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 600;
+      max-width: 250px;
+      padding: 10px 13px 11px;
+      border: 1px solid rgba(216, 163, 26, 0.34);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 8px 22px rgba(14, 47, 23, 0.12);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .brand__label {
+      display: none;
+      margin: 0;
+      font-size: 10px;
+      color: var(--accent-dark);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .brand__name {
+      color: #0E2F17;
+      font-size: 17px;
+      line-height: 1.16;
+      font-weight: 800;
+    }
+
+    .brand__desc {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #6F5A18;
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .brand__desc::before {
+      content: "";
+      width: 22px;
+      height: 2px;
+      border-radius: 999px;
+      background: #D8A31A;
+    }
+
+    .brand p {
+      display: none;
+      margin: 4px 0 0;
+      max-width: 220px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .panel {
+      position: relative;
+      z-index: 500;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+      height: 100vh;
+      padding: 18px;
+      --team-main: #D8A31A;
+      --team-text: #102015;
+      border-left: 1px solid #E6C15D;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      transition: border-color 260ms ease;
+    }
+
+    .stage-kicker {
+      margin: 0 0 6px;
+      color: var(--team-main);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .stage-title {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.15;
+      letter-spacing: 0;
+      color: #0E2F17;
+    }
+
+    .stage-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #ffffff;
+      border-color: #E6C15D;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .story {
+      min-height: 0;
+      margin: 16px -6px 0 0;
+      padding-right: 6px;
+      overflow: auto;
+    }
+
+    .story p {
+      margin: 0 0 12px;
+      color: #4A624A;
+      font-size: 14px;
+      line-height: 1.68;
+    }
+
+    .moment-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .moment-heading {
+      margin: 14px 0 8px;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .moment {
+      padding: 9px 11px;
+      border-left: 3px solid var(--team-main);
+      background: #ffffff;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .moment time {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--team-main);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .moment span {
+      color: #0E2F17;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    .stage-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 7px;
+      margin: 18px 0 0;
+    }
+
+    .stage-dot {
+      height: 5px;
+      border: 0;
+      border-radius: 999px;
+      background: #E6C15D;
+      cursor: pointer;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+
+    .stage-dot.is-active {
+      background: #D8A31A;
+      transform: scaleY(1.7);
+    }
+
+    .stage-dot.is-past {
+      background: #D8A31A;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 10px;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .icon-button,
+    .play-button {
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #F3FAEF;
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      border-color: #E6C15D;
+      color: #D8A31A;
+      background: #ffffff;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .play-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 800;
+      color: var(--team-text);
+      border-color: var(--team-main);
+      background: var(--team-main);
+    }
+
+    .icon-button:hover,
+    .play-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .icon-button:hover {
+      border-color: #D8A31A;
+      background: #FFF8E6;
+    }
+
+    .icon-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .chapter-rail {
+      display: none;
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      z-index: 600;
+      gap: 6px;
+      width: min(330px, calc(100vw - 460px));
+    }
+
+    .chapter-button {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 38px;
+      padding: 5px 9px 5px 5px;
+      border: 1px solid #E6C15D;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      box-shadow: 0 8px 24px rgba(20, 20, 20, 0.08);
+      cursor: pointer;
+      text-align: left;
+      backdrop-filter: blur(10px);
+    }
+
+    .chapter-button.is-active {
+      border-color: var(--team-main);
+      background: #ffffff;
+    }
+
+    .chapter-number {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--route);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .chapter-button.is-active .chapter-number {
+      transform: scale(1.04);
+    }
+
+    .chapter-main strong {
+      display: block;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .chapter-main span,
+    .chapter-year {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .city-label {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #145A24;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.15;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.98), 0 0 6px rgba(255, 255, 255, 0.92);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .city-pin {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 8px 20px rgba(20, 20, 20, 0.28);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .city-pin.is-active {
+      animation: pin-pop 420ms ease;
+    }
+
+    .city-pin.is-active::after {
+      content: "";
+      position: absolute;
+      width: 58px;
+      height: 58px;
+      border: 2px solid rgba(189, 47, 47, 0.55);
+      border-radius: 50%;
+      animation: pin-pulse 1.8s ease-out infinite;
+    }
+
+    @keyframes pin-pop {
+      0% {
+        transform: scale(0.7);
+      }
+      70% {
+        transform: scale(1.16);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes pin-pulse {
+      0% {
+        opacity: 0.7;
+        transform: scale(0.55);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.15);
+      }
+    }
+
+    .city-pin.is-muted {
+      transform: scale(0.76);
+    }
+
+    .route-light {
+      width: 12px;
+      height: 12px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.28), 0 4px 14px rgba(0, 0, 0, 0.24);
+    }
+
+    .route-runner {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      line-height: 1;
+      filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.28));
+      perspective: 120px;
+    }
+
+    .route-ball {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: transparent;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
+      transform-style: preserve-3d;
+    }
+
+    .route-ball img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .route-ball::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.9) 0 12%, transparent 28%);
+      pointer-events: none;
+    }
+
+    .route-ball::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow: inset -7px -8px 9px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+    }
+
+    .achievement-list {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .achievement-row {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      border-color: #E6C15D;
+    }
+
+    .achievement-row strong {
+      color: var(--team-main);
+      font-size: 12px;
+    }
+
+    .achievement-row span {
+      color: #0E2F17;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+
+    .mobile-handle {
+      display: none;
+    }
+
+    @media (max-width: 920px) {
+      body {
+        overflow: hidden;
+      }
+
+      .app {
+        display: block;
+      }
+
+      #map {
+        height: 100vh;
+      }
+
+      .brand {
+        top: 14px;
+        left: 14px;
+        right: auto;
+        max-width: none;
+        width: auto;
+        padding: 8px 10px 9px;
+        border: 1px solid rgba(216, 163, 26, 0.34);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 20px rgba(14, 47, 23, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .brand__label {
+        margin-bottom: 5px;
+      }
+
+      .brand h1 {
+        gap: 3px;
+      }
+
+      .brand__name {
+        font-size: 14px;
+      }
+
+      .brand__desc {
+        gap: 6px;
+        font-size: 10px;
+      }
+
+      .brand__desc::before {
+        width: 18px;
+      }
+
+      .brand p {
+        display: none;
+      }
+
+      .leaflet-bottom.leaflet-left {
+        left: auto;
+        right: 12px;
+        bottom: auto;
+        top: 88px;
+      }
+
+      .chapter-rail {
+        display: none;
+      }
+
+      .panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: min(54vh, 460px);
+        padding: 14px 16px 16px;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+        border-radius: 8px 8px 0 0;
+        transform: translateY(calc(100% - 162px));
+        transition: transform 220ms ease;
+      }
+
+      .panel.is-open {
+        transform: translateY(0);
+      }
+
+      .mobile-handle {
+        display: block;
+        width: 44px;
+        height: 5px;
+        margin: 0 auto 12px;
+        border-radius: 999px;
+        border: 0;
+        background: #93C96B;
+        cursor: pointer;
+      }
+
+      .stage-title {
+        font-size: 21px;
+      }
+
+      .stage-meta {
+        margin-top: 10px;
+      }
+
+      .story {
+        margin-top: 14px;
+      }
+
+      .story p {
+        font-size: 14px;
+        line-height: 1.72;
+        margin-bottom: 12px;
+      }
+
+      .moment-list {
+        margin-top: 12px;
+      }
+
+      .moment {
+        padding: 10px 12px;
+      }
+
+      .controls {
+        grid-template-columns: 42px 1fr 42px;
+        padding-top: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="map" aria-label="Cristiano Ronaldo career map"></section>
+
+    <header class="brand">
+      <p class="brand__label">Cristiano Ronaldo Career Journey</p>
+      <h1>
+        <span class="brand__name">克里斯蒂亚诺·罗纳尔多</span>
+        <span class="brand__desc">职业生涯轨迹图</span>
+      </h1>
+    </header>
+
+    <nav class="chapter-rail" id="chapterRail" aria-label="职业阶段"></nav>
+
+    <aside class="panel" id="storyPanel">
+      <button class="mobile-handle" id="mobileHandle" aria-label="展开或收起"></button>
+      <section>
+        <p class="stage-kicker" id="stageKicker"></p>
+        <h2 class="stage-title" id="stageTitle"></h2>
+        <div class="stage-meta" id="stageMeta"></div>
+        <div class="stage-strip" id="stageStrip"></div>
+      </section>
+      <section class="story" id="stageStory"></section>
+      <footer class="controls">
+        <button class="icon-button" id="prevBtn" aria-label="上一站">‹</button>
+        <button class="play-button" id="playBtn" aria-label="播放职业轨迹">
+          <span id="playIcon">▶</span>
+          <span id="playText">播放轨迹</span>
+        </button>
+        <button class="icon-button" id="nextBtn" aria-label="下一站">›</button>
+      </footer>
+    </aside>
+  </main>
+
+  <script>
+    const stages = [
+      {
+        city: "丰沙尔",
+        country: "葡萄牙",
+        club: "童年与国民队",
+        period: "1985-1997",
+        years: "1985-1997",
+        lat: 32.6669,
+        lon: -16.9241,
+        colors: { primary: "#7a4c2b", secondary: "#FFFFFF" },
+        zoom: 6,
+        title: "从马德拉出发",
+        summary: "罗纳尔多的足球故事从马德拉岛开始。这里远离欧洲足球中心，却给了他最早的训练环境和离开家乡的理由。",
+        achievementsTitle: "成长节点",
+        achievements: [
+          ["球队", "Andorinha / Nacional"],
+          ["出场", "-"],
+          ["进球", "-"],
+          ["荣誉", "-"]
+        ],
+        moments: [
+          ["1985", "出生于葡萄牙马德拉自治区丰沙尔。"],
+          ["1995", "进入当地球队 Nacional 的成长路径。"],
+          ["1997", "离开马德拉，前往里斯本接受更系统的青训。"]
+        ]
+      },
+      {
+        city: "里斯本",
+        country: "葡萄牙",
+        club: "葡萄牙体育",
+        period: "1997-2003",
+        years: "1997-2003",
+        lat: 38.7616,
+        lon: -9.1608,
+        colors: { primary: "#00A651", secondary: "#FFFFFF" },
+        zoom: 6,
+        title: "在里斯本进入职业足球",
+        summary: "来到里斯本后，他进入葡萄牙体育青训体系，也第一次靠近职业赛场。这个阶段的重点，是从有天赋的少年成长为一线队球员。",
+        achievementsTitle: "葡萄牙体育阶段",
+        achievements: [
+          ["球队", "Sporting CP"],
+          ["出场", "31 场"],
+          ["进球", "5 球"],
+          ["荣誉", "-"]
+        ],
+        moments: [
+          ["1997", "加入葡萄牙体育青训体系。"],
+          ["2002", "升入一线队并完成职业亮相。"],
+          ["2002-03", "一线队出场 31 次，打进 5 球。"],
+          ["2003", "转会曼联，职业生涯第一次离开葡萄牙。"]
+        ]
+      },
+      {
+        city: "曼彻斯特",
+        country: "英格兰",
+        club: "曼联",
+        period: "2003-2009",
+        years: "2003-2009",
+        lat: 53.4631,
+        lon: -2.2914,
+        colors: { primary: "#DA291C", secondary: "#FFFFFF" },
+        zoom: 6,
+        title: "在曼彻斯特完成成名",
+        summary: "第一次效力曼联，是他真正成名的阶段。他从初到英超的年轻边锋，逐渐成为球队核心，并拿到个人第一座金球奖。",
+        achievementsTitle: "曼联第一阶段成就",
+        achievements: [
+          ["球队", "Manchester United"],
+          ["出场", "292 场"],
+          ["进球", "118 球"],
+          ["荣誉", "3 次英超冠军、1 次欧冠冠军、1 次金球奖"]
+        ],
+        moments: [
+          ["2003", "加盟曼联，继承 7 号球衣。"],
+          ["2006-09", "随队赢得 3 次英超冠军。"],
+          ["2008", "赢得欧冠、世俱杯，并首次获得金球奖。"],
+          ["2003-09", "代表曼联出场 292 次，打进 118 球。"]
+        ]
+      },
+      {
+        city: "马德里",
+        country: "西班牙",
+        club: "皇家马德里",
+        period: "2009-2018",
+        years: "2009-2018",
+        lat: 40.4531,
+        lon: -3.6886,
+        colors: { primary: "#FFFFFF", secondary: "#FEBE10" },
+        zoom: 6,
+        title: "马德里的巅峰九年",
+        summary: "马德里是他职业生涯最重要的一站。九年时间里，他不断刷新进球纪录，也把自己和皇家马德里的欧冠时代紧紧连在一起。",
+        achievementsTitle: "皇家马德里阶段成就",
+        achievements: [
+          ["球队", "Real Madrid"],
+          ["出场", "438 场"],
+          ["进球", "450 球"],
+          ["荣誉", "4 次欧冠冠军、2 次西甲冠军、多次金球奖"]
+        ],
+        moments: [
+          ["2009", "加盟皇家马德里。"],
+          ["2009-18", "代表皇马出场 438 次，打进 450 球，成为队史最佳射手。"],
+          ["2016-2018", "完成欧冠三连冠。"],
+          ["荣誉", "随队赢得 4 次欧冠、2 次西甲冠军，并在此阶段多次获得金球奖。"]
+        ]
+      },
+      {
+        city: "都灵",
+        country: "意大利",
+        club: "尤文图斯",
+        period: "2018-2021",
+        years: "2018-2021",
+        lat: 45.1094,
+        lon: 7.642,
+        colors: { primary: "#000000", secondary: "#FFFFFF" },
+        zoom: 6,
+        title: "都灵的新挑战",
+        summary: "离开马德里后，他来到都灵，开始适应意甲节奏。这个阶段更像是一次新的挑战：换了联赛，仍要保持稳定的进球输出。",
+        achievementsTitle: "尤文图斯阶段成就",
+        achievements: [
+          ["球队", "Juventus"],
+          ["出场", "134 场"],
+          ["进球", "101 球"],
+          ["荣誉", "2 次意甲冠军、1 次意大利杯、2 次意大利超级杯"]
+        ],
+        moments: [
+          ["2018", "加盟尤文图斯。"],
+          ["2018-21", "代表尤文出场 134 次，打进 101 球。"],
+          ["荣誉", "随队赢得 2 次意甲冠军、1 次意大利杯和 2 次意大利超级杯。"],
+          ["个人", "获得意甲最佳球员、意甲金靴等个人荣誉。"]
+        ]
+      },
+      {
+        city: "曼彻斯特",
+        country: "英格兰",
+        club: "曼联",
+        period: "2021-2022",
+        years: "2021-2022",
+        lat: 53.55,
+        lon: -2.35,
+        colors: { primary: "#DA291C", secondary: "#FFFFFF" },
+        zoom: 6,
+        title: "重返曼联",
+        summary: "再次回到曼联时，情感意义很强，但球队环境已经不同。这个阶段既有回归的关注度，也有角色定位和球队方向上的分歧。",
+        achievementsTitle: "曼联第二阶段",
+        achievements: [
+          ["球队", "Manchester United"],
+          ["出场", "54 场"],
+          ["进球", "27 球"],
+          ["荣誉", "-"]
+        ],
+        moments: [
+          ["2021", "重返曼联。"],
+          ["2021-22", "单赛季打进 24 球，是球队主要得分点。"],
+          ["总计", "第二阶段代表曼联出场 54 次，打进 27 球。"],
+          ["2022", "双方提前结束合同。"]
+        ]
+      },
+      {
+        city: "利雅得",
+        country: "沙特阿拉伯",
+        club: "利雅得胜利",
+        period: "2023-至今",
+        years: "2023-至今",
+        lat: 24.7136,
+        lon: 46.6753,
+        colors: { primary: "#FDB913", secondary: "#004B87" },
+        zoom: 6,
+        title: "转向利雅得",
+        summary: "加盟利雅得胜利后，他的职业路线从欧洲转向西亚。这一站不仅改变了个人生涯的地点，也让更多球迷开始关注沙特联赛。这里的数据先固定到一个明确时间点，避免页面显示“持续更新”但实际没有口径。",
+        achievementsTitle: "利雅得胜利阶段",
+        achievements: [
+          ["球队", "Al-Nassr"],
+          ["出场", "22场（截至 2026-01-30）"],
+          ["进球", "27球（截至 2026-01-30）"],
+          ["成就", "阿拉伯俱乐部冠军杯、沙超杯亚军、亚冠二级联赛亚军、沙特联赛领跑射手榜"]
+        ],
+        moments: [
+          ["2023", "加盟利雅得胜利。"],
+          ["2023", "随队赢得阿拉伯俱乐部冠军杯。"],
+          ["2023-24", "获得沙特联赛金靴，继续保持高进球产量。"],
+          ["2025-26", "截至 2026-01-30，各项赛事 22 场 27 球。"],
+          ["2025-26", "联赛 23 球、国王杯 1 球、亚冠二级联赛 2 球、沙超杯 1 球。"]
+        ]
+      }
+    ];
+
+    let current = 0;
+    let playing = false;
+    let playTimer = null;
+    const markers = [];
+    const labels = [];
+    const routes = [];
+    const routeProgress = [];
+    let routeLight = null;
+    let routeRunner = null;
+    let travelAnimation = null;
+    let isTraveling = false;
+    let hasStartedJourney = false;
+    let openingView = null;
+
+    const careerOverview = {
+      kicker: "生涯总览",
+      title: "克里斯蒂亚诺·罗纳尔多",
+      meta: ["俱乐部数：5", "生涯时间：2002-至今"],
+      summary: "",
+      achievementsTitle: "生涯总成就",
+      achievements: [
+        ["总进球数", "975+（俱乐部 840 球 | 葡萄牙 135 球）"],
+        ["总出场数", "1,060+"],
+        ["冠军奖杯", "31 座"],
+        ["金球奖", "5 次"],
+        ["欧冠冠军", "5 次"]
+      ],
+      moments: []
+    };
+
+    const map = L.map("map", {
+      zoomControl: false,
+      scrollWheelZoom: true,
+      zoomSnap: 0.1,
+      zoomDelta: 0.25
+    });
+
+    L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+    const overviewLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    const tiandituKey = typeof TIANDITU_TK === "string" ? TIANDITU_TK : "";
+    let tiandituBase = null;
+    let tiandituLabels = null;
+    if (tiandituKey) {
+      tiandituBase = L.tileLayer("https://t{s}.tianditu.gov.cn/DataServer?T=vec_w&x={x}&y={y}&l={z}&tk=" + tiandituKey, {
+        subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
+        maxZoom: 18,
+        opacity: 1,
+        attribution: "&copy; 天地图"
+      }).addTo(map);
+      tiandituLabels = L.tileLayer("https://t{s}.tianditu.gov.cn/DataServer?T=cva_w&x={x}&y={y}&l={z}&tk=" + tiandituKey, {
+        subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
+        maxZoom: 18,
+        opacity: 1,
+        attribution: ""
+      }).addTo(map);
+    }
+
+    function syncBaseLayerOpacity() {
+      if (!tiandituBase || !tiandituLabels) return;
+      tiandituBase.setOpacity(1);
+      tiandituLabels.setOpacity(1);
+      overviewLayer.setOpacity(0);
+    }
+
+    map.on("zoomend", syncBaseLayerOpacity);
+
+    function pinIcon(stage, index, active) {
+      const fill = stage.colors.primary;
+      const stroke = stage.colors.secondary;
+      const textColor = stage.colors.primary === "#FFFFFF" ? "#222" : "#fff";
+      return L.divIcon({
+        className: "",
+        html: `<div class="city-pin${active ? " is-active" : " is-muted"}" style="background:${fill};border-color:${stroke};color:${textColor}">${index + 1}</div>`,
+        iconSize: [42, 42],
+        iconAnchor: [21, 21]
+      });
+    }
+
+    function labelIcon(stage) {
+      return L.divIcon({
+        className: "",
+        html: `<div class="city-label">${stage.club}</div>`,
+        iconAnchor: [-8, -18]
+      });
+    }
+
+    function buildMapObjects() {
+      stages.forEach((stage, index) => {
+        const marker = L.marker([stage.lat, stage.lon], {
+          icon: pinIcon(stage, index, index === current),
+          keyboard: true
+        }).addTo(map);
+        marker.on("click", () => setStage(index, true));
+        markers.push(marker);
+
+        const label = L.marker([stage.lat, stage.lon], {
+          icon: labelIcon(stage),
+          interactive: false
+        }).addTo(map);
+        labels.push(label);
+
+        if (index < stages.length - 1) {
+          const next = stages[index + 1];
+          const route = L.polyline(
+            [[stage.lat, stage.lon], [next.lat, next.lon]],
+            {
+              color: "#7BC043",
+              weight: 5,
+              opacity: 0,
+              lineCap: "round"
+            }
+          ).addTo(map);
+          routes.push(route);
+
+          const progress = L.polyline(
+            [[stage.lat, stage.lon]],
+            {
+              color: "#7BC043",
+              weight: 6,
+              opacity: 0,
+              lineCap: "round"
+            }
+          ).addTo(map);
+          routeProgress.push(progress);
+        }
+      });
+    }
+
+    function renderNavigation() {
+      const rail = document.getElementById("chapterRail");
+      const strip = document.getElementById("stageStrip");
+
+      rail.innerHTML = stages.map((stage, index) => `
+        <button class="chapter-button" data-index="${index}" aria-label="${stage.city} ${stage.period}">
+          <span class="chapter-number" style="background:${stage.colors.primary};border:2px solid ${stage.colors.secondary};color:${stage.colors.primary === "#FFFFFF" ? "#222" : "#fff"}">${index + 1}</span>
+          <span class="chapter-main">
+            <strong>${stage.city}</strong>
+            <span>${stage.club}</span>
+          </span>
+          <span class="chapter-year">${stage.period}</span>
+        </button>
+      `).join("");
+
+      strip.innerHTML = stages.map((stage, index) => `
+        <button class="stage-dot" data-index="${index}" aria-label="${stage.city}"></button>
+      `).join("");
+
+      document.querySelectorAll("[data-index]").forEach((button) => {
+        const moveMap = !button.classList.contains("stage-dot");
+        button.addEventListener("click", () => setStage(Number(button.dataset.index), moveMap));
+      });
+    }
+
+    function fitOpeningView(animated = false) {
+      const bounds = L.latLngBounds(stages.map((stage) => [stage.lat, stage.lon]));
+      if (window.innerWidth <= 920) {
+        map.setView([39.2, 20.2], 2.8, { animate: animated });
+        syncBaseLayerOpacity();
+        openingView = {
+          center: map.getCenter(),
+          zoom: map.getZoom()
+        };
+        return;
+      }
+      map.fitBounds(bounds, {
+        paddingTopLeft: [42, 58],
+        paddingBottomRight: [42, 58],
+        maxZoom: 4,
+        animate: animated
+      });
+      openingView = {
+        center: map.getCenter(),
+        zoom: map.getZoom()
+      };
+    }
+
+    function fitCareerBoundsForFinalStage(animated) {
+      if (!openingView) {
+        fitOpeningView(false);
+      } else {
+        map.setView(openingView.center, openingView.zoom, {
+          animate: animated,
+          duration: animated ? 1.2 : 0
+        });
+      }
+      syncBaseLayerOpacity();
+    }
+
+    function renderInfo(data) {
+      document.getElementById("stageKicker").textContent = data.kicker;
+      document.getElementById("stageTitle").textContent = data.title;
+      document.getElementById("stageMeta").innerHTML = data.meta.map((item) => `<span class="pill">${item}</span>`).join("");
+      document.getElementById("stageStory").innerHTML = `
+        ${data.summary ? `<p>${data.summary}</p>` : ""}
+        <h3 class="moment-heading">${data.achievementsTitle}</h3>
+        <div class="achievement-list">
+          ${data.achievements.map((item) => `
+            <div class="achievement-row">
+              <strong>${item[0]}</strong>
+              <span>${item[1]}</span>
+            </div>
+          `).join("")}
+        </div>
+        ${data.moments && data.moments.length ? `<div class="moment-list">
+          ${data.moments.map((moment) => `
+            <div class="moment">
+              <time>${moment[0]}</time>
+              <span>${moment[1]}</span>
+            </div>
+          `).join("")}
+        </div>` : ""}
+      `;
+    }
+
+    function renderOverview() {
+      renderInfo(careerOverview);
+      document.querySelectorAll(".chapter-button").forEach((button) => button.classList.remove("is-active"));
+      document.querySelectorAll(".stage-dot").forEach((button) => {
+        button.classList.remove("is-active");
+        button.classList.remove("is-past");
+      });
+      markers.forEach((marker, i) => {
+        marker.setIcon(pinIcon(stages[i], i, false));
+        marker.setOpacity(1);
+      });
+      labels.forEach((label) => label.setOpacity(0));
+      routes.forEach((route) => route.setStyle({ opacity: 0, weight: 5, color: "#7BC043" }));
+      routeProgress.forEach((route, i) => {
+        const from = stages[i];
+        route.setLatLngs([[from.lat, from.lon]]);
+        route.setStyle({ opacity: 0, weight: 6, color: "#7BC043" });
+      });
+      document.getElementById("prevBtn").disabled = true;
+      document.getElementById("nextBtn").disabled = false;
+    }
+
+    function setStage(index, moveMap) {
+      current = Math.max(0, Math.min(stages.length - 1, index));
+      const stage = stages[current];
+
+      renderInfo({
+        kicker: `第 ${current + 1} 站 · ${stage.period}`,
+        title: stage.title,
+        meta: [`${stage.city}，${stage.country}`, stage.club, stage.period],
+        summary: "",
+        achievementsTitle: stage.achievementsTitle,
+        achievements: stage.achievements,
+        moments: stage.moments
+      });
+
+      document.querySelectorAll(".chapter-button").forEach((button, i) => {
+        button.classList.toggle("is-active", i === current);
+      });
+
+      document.querySelectorAll(".stage-dot").forEach((button, i) => {
+        button.classList.toggle("is-active", i === current);
+        button.classList.toggle("is-past", i < current);
+      });
+
+      markers.forEach((marker, i) => {
+        marker.setIcon(pinIcon(stages[i], i, i === current));
+        marker.setOpacity(1);
+        if (i === current) marker.setZIndexOffset(1000);
+        else marker.setZIndexOffset(i <= current ? 300 + i : i);
+      });
+
+      labels.forEach((label, i) => {
+        label.setOpacity(i <= current ? 1 : 0);
+      });
+
+      routes.forEach((route, i) => {
+        route.setStyle({ opacity: 0, weight: 5, color: "#7BC043" });
+      });
+
+      routeProgress.forEach((route, i) => {
+        const from = stages[i];
+        const to = stages[i + 1];
+        if (i < current) {
+          route.setLatLngs([[from.lat, from.lon], [to.lat, to.lon]]);
+          route.setStyle({ opacity: 1, weight: 6, color: "#7BC043" });
+        } else {
+          route.setLatLngs([[from.lat, from.lon]]);
+          route.setStyle({ opacity: 0, weight: 6, color: "#7BC043" });
+        }
+      });
+
+      document.getElementById("prevBtn").disabled = current === 0;
+      document.getElementById("nextBtn").disabled = current === stages.length - 1;
+
+      if (moveMap) {
+        map.stop();
+        if (current === stages.length - 1) {
+          fitCareerBoundsForFinalStage(false);
+        } else {
+          map.panTo([stage.lat, stage.lon], {
+            animate: true,
+            duration: 1.55,
+            easeLinearity: 0.18
+          });
+        }
+      }
+    }
+
+    function interpolatePosition(from, to, progress) {
+      return [
+        from.lat + (to.lat - from.lat) * progress,
+        from.lon + (to.lon - from.lon) * progress
+      ];
+    }
+
+    let lastCameraFollow = 0;
+
+    function followRunnerIfNeeded(latlng, now) {
+      const point = map.latLngToContainerPoint(latlng);
+      const size = map.getSize();
+      const center = L.point(size.x / 2, size.y / 2);
+      const distance = point.distanceTo(center);
+      const threshold = Math.min(size.x, size.y) * 0.36;
+
+      if (distance > threshold && now - lastCameraFollow > 520) {
+        lastCameraFollow = now;
+        map.panTo(latlng, {
+          animate: true,
+          duration: 0.55,
+          easeLinearity: 0.22
+        });
+      }
+    }
+
+    function ensureRouteLight() {
+      if (!routeLight) {
+        routeLight = L.marker([stages[0].lat, stages[0].lon], {
+          icon: L.divIcon({
+            className: "",
+            html: '<div class="route-light"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+          }),
+          interactive: false,
+          opacity: 0
+        }).addTo(map);
+      }
+      return routeLight;
+    }
+
+    function ensureRouteRunner() {
+      if (!routeRunner) {
+        routeRunner = L.marker([stages[0].lat, stages[0].lon], {
+          icon: L.divIcon({
+            className: "",
+            html: '<div class="route-runner"><div class="route-ball" aria-hidden="true"><img src="assets/soccer-ball-marker.png" alt=""></div></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+          }),
+          interactive: false,
+          opacity: 0
+        }).addTo(map);
+      }
+      return routeRunner;
+    }
+
+    function animateTravel(fromIndex, toIndex, done) {
+      if (travelAnimation) window.cancelAnimationFrame(travelAnimation);
+      isTraveling = true;
+      const from = stages[fromIndex];
+      const to = stages[toIndex];
+      const light = ensureRouteLight();
+      const runner = ensureRouteRunner();
+      const duration = fromIndex === 5 ? 3600 : 2600;
+      const started = performance.now();
+      const progressRoute = routeProgress[fromIndex];
+      const shouldHoldCamera = fromIndex < 5;
+      const shouldSmoothPan = fromIndex === 5;
+
+      map.stop();
+      lastCameraFollow = started;
+      if (shouldSmoothPan) {
+        fitCareerBoundsForFinalStage(false);
+      }
+
+      if (routes[fromIndex]) {
+        routes[fromIndex].setStyle({ opacity: 0, weight: 5, color: "#7BC043" });
+      }
+      if (progressRoute) {
+        progressRoute.setStyle({ opacity: 1, weight: 7, color: "#7BC043" });
+        progressRoute.setLatLngs([[from.lat, from.lon]]);
+      }
+
+      light.setOpacity(1);
+      light.setLatLng([from.lat, from.lon]);
+      runner.setOpacity(1);
+      runner.setLatLng([from.lat, from.lon]);
+
+      function step(now) {
+        const raw = Math.min(1, (now - started) / duration);
+        const eased = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+        const position = interpolatePosition(from, to, eased);
+        light.setLatLng(position);
+        runner.setLatLng(position);
+        if (!shouldHoldCamera && !shouldSmoothPan) {
+          followRunnerIfNeeded(position, now);
+        }
+        if (progressRoute) {
+          progressRoute.setLatLngs([[from.lat, from.lon], position]);
+        }
+        if (raw < 1) {
+          travelAnimation = window.requestAnimationFrame(step);
+        } else {
+          light.setOpacity(0);
+          runner.setOpacity(0);
+          if (progressRoute) {
+            progressRoute.setLatLngs([[from.lat, from.lon], [to.lat, to.lon]]);
+            progressRoute.setStyle({ opacity: 1, weight: 6, color: "#7BC043" });
+          }
+          travelAnimation = null;
+          isTraveling = false;
+          if (shouldSmoothPan) {
+            syncBaseLayerOpacity();
+          }
+          done();
+        }
+      }
+
+      travelAnimation = window.requestAnimationFrame(step);
+    }
+
+    function animateBacktrack(fromIndex, toIndex, done) {
+      if (travelAnimation) window.cancelAnimationFrame(travelAnimation);
+      isTraveling = true;
+      const from = stages[fromIndex];
+      const to = stages[toIndex];
+      const light = ensureRouteLight();
+      const runner = ensureRouteRunner();
+      const segmentIndex = toIndex;
+      const duration = segmentIndex === 5 ? 3600 : 2600;
+      const started = performance.now();
+      const progressRoute = routeProgress[segmentIndex];
+
+      map.stop();
+
+      if (progressRoute) {
+        progressRoute.setStyle({ opacity: 1, weight: 7, color: "#7BC043" });
+        progressRoute.setLatLngs([[to.lat, to.lon], [from.lat, from.lon]]);
+      }
+
+      light.setOpacity(1);
+      light.setLatLng([from.lat, from.lon]);
+      runner.setOpacity(1);
+      runner.setLatLng([from.lat, from.lon]);
+
+      function step(now) {
+        const raw = Math.min(1, (now - started) / duration);
+        const eased = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+        const position = interpolatePosition(from, to, eased);
+        light.setLatLng(position);
+        runner.setLatLng(position);
+        if (progressRoute) {
+          progressRoute.setLatLngs([[to.lat, to.lon], position]);
+        }
+        if (raw < 1) {
+          travelAnimation = window.requestAnimationFrame(step);
+        } else {
+          light.setOpacity(0);
+          runner.setOpacity(0);
+          if (progressRoute) {
+            progressRoute.setLatLngs([[to.lat, to.lon]]);
+            progressRoute.setStyle({ opacity: 0, weight: 6, color: "#7BC043" });
+          }
+          travelAnimation = null;
+          isTraveling = false;
+          done();
+        }
+      }
+
+      travelAnimation = window.requestAnimationFrame(step);
+    }
+
+    function nextStage() {
+      if (isTraveling) return;
+      if (current < stages.length - 1) {
+        const from = current;
+        const to = current + 1;
+        animateTravel(from, to, () => setStage(to, false));
+      } else {
+        stopPlayback();
+      }
+    }
+
+    function previousStage(moveMap = true) {
+      if (isTraveling) return;
+      if (current > 0) {
+        const from = current;
+        const to = current - 1;
+        animateBacktrack(from, to, () => setStage(to, moveMap));
+      }
+    }
+
+    function startPlayback() {
+      const shouldRestart = !hasStartedJourney || current >= stages.length - 1;
+      playing = true;
+      hasStartedJourney = true;
+      document.getElementById("playIcon").textContent = "❚❚";
+      document.getElementById("playText").textContent = "暂停";
+      if (shouldRestart) {
+        current = 0;
+        setStage(0, false);
+      } else {
+        setStage(current, false);
+      }
+      nextStage();
+      playTimer = window.setInterval(nextStage, 4600);
+    }
+
+    function stopPlayback() {
+      playing = false;
+      window.clearInterval(playTimer);
+      playTimer = null;
+      if (travelAnimation) {
+        window.cancelAnimationFrame(travelAnimation);
+        travelAnimation = null;
+      }
+      isTraveling = false;
+      if (routeLight) routeLight.setOpacity(0);
+      if (routeRunner) routeRunner.setOpacity(0);
+      setStage(current, false);
+      if (current === stages.length - 1) {
+        fitCareerBoundsForFinalStage(false);
+      }
+      document.getElementById("playIcon").textContent = "▶";
+      document.getElementById("playText").textContent = "播放轨迹";
+    }
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      stopPlayback();
+      if (!hasStartedJourney) {
+        hasStartedJourney = true;
+        setStage(0, false);
+        return;
+      }
+      nextStage();
+    });
+
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      stopPlayback();
+      hasStartedJourney = true;
+      previousStage(false);
+    });
+
+    document.getElementById("playBtn").addEventListener("click", () => {
+      if (playing) {
+        stopPlayback();
+      } else {
+        startPlayback();
+      }
+    });
+
+    document.getElementById("mobileHandle").addEventListener("click", () => {
+      document.getElementById("storyPanel").classList.toggle("is-open");
+    });
+
+    window.addEventListener("resize", () => {
+      setTimeout(() => {
+        map.invalidateSize();
+        if (current === 0 && !playing) {
+          if (hasStartedJourney) setStage(current, true);
+          else fitOpeningView();
+        } else {
+          setStage(current, true);
+        }
+      }, 120);
+    });
+
+    buildMapObjects();
+    renderNavigation();
+    fitOpeningView();
+    syncBaseLayerOpacity();
+    renderOverview();
+    window.setTimeout(() => {
+      map.invalidateSize();
+      fitOpeningView();
+      renderOverview();
+    }, 120);
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# 忽略文件
+*.log
+.DS_Store
+node_modules/

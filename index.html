@@ -1127,7 +1127,12 @@
     function fitOpeningView(animated = false) {
       const bounds = L.latLngBounds(stages.map((stage) => [stage.lat, stage.lon]));
       if (window.innerWidth <= 920) {
-        map.setView([32, 10], 2.5, { animate: animated });
+        map.fitBounds(bounds, {
+          paddingTopLeft: [70, 24],
+          paddingBottomRight: [200, 24],
+          maxZoom: 5,
+          animate: animated
+        });
         syncBaseLayerOpacity();
         openingView = {
           center: map.getCenter(),

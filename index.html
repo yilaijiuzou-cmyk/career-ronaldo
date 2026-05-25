@@ -680,7 +680,8 @@
         display: grid;
         place-items: center;
         position: fixed;
-        right: 14px;
+        right: auto;
+        left: 14px;
         bottom: 185px;
         z-index: 700;
         width: 52px;
@@ -1126,7 +1127,7 @@
     function fitOpeningView(animated = false) {
       const bounds = L.latLngBounds(stages.map((stage) => [stage.lat, stage.lon]));
       if (window.innerWidth <= 920) {
-        map.setView([39.2, 20.2], 2.8, { animate: animated });
+        map.setView([32, 10], 2.5, { animate: animated });
         syncBaseLayerOpacity();
         openingView = {
           center: map.getCenter(),
@@ -1565,6 +1566,7 @@
 
     document.getElementById("mobileHandle").addEventListener("click", () => {
       document.getElementById("storyPanel").classList.toggle("is-open");
+      setTimeout(() => map.invalidateSize(), 250);
     });
 
     window.addEventListener("resize", () => {

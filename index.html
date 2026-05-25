@@ -537,6 +537,14 @@
       display: none;
     }
 
+    .mobile-play-float {
+      display: none;
+    }
+
+    .achievement-strip {
+      display: none;
+    }
+
     @media (max-width: 920px) {
       body {
         overflow: hidden;
@@ -610,12 +618,16 @@
         border-top: 1px solid var(--line);
         border-left: 0;
         border-radius: 8px 8px 0 0;
-        transform: translateY(calc(100% - 162px));
+        transform: translateY(calc(100% - 175px));
         transition: transform 220ms ease;
       }
 
       .panel.is-open {
         transform: translateY(0);
+      }
+
+      .panel.is-open ~ .mobile-play-float {
+        display: none;
       }
 
       .mobile-handle {
@@ -634,7 +646,11 @@
       }
 
       .stage-meta {
-        margin-top: 10px;
+        display: none;
+      }
+
+      .stage-strip {
+        display: none;
       }
 
       .story {
@@ -659,6 +675,68 @@
         grid-template-columns: 42px 1fr 42px;
         padding-top: 12px;
       }
+
+      .mobile-play-float {
+        display: grid;
+        place-items: center;
+        position: fixed;
+        right: 14px;
+        bottom: 185px;
+        z-index: 700;
+        width: 52px;
+        height: 52px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #2F8F3A;
+        color: #fff;
+        font-size: 22px;
+        box-shadow: 0 6px 20px rgba(15, 55, 20, 0.35);
+        cursor: pointer;
+        transition: transform 180ms ease, background 180ms ease;
+      }
+
+      .mobile-play-float.is-playing {
+        background: #176B2C;
+      }
+
+      .mobile-play-float:active {
+        transform: scale(0.94);
+      }
+
+      .achievement-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .achievement-strip .strip-item {
+        padding: 6px 8px;
+        border: 1px solid #E6C15D;
+        border-radius: 6px;
+        text-align: center;
+        background: #FFFAED;
+      }
+
+      .achievement-strip .strip-item strong {
+        display: block;
+        color: #D8A31A;
+        font-size: 10px;
+        font-weight: 700;
+        margin-bottom: 2px;
+      }
+
+      .achievement-strip .strip-item span {
+        display: block;
+        color: #0E2F17;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .moment.mobile-hide {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -682,6 +760,7 @@
         <p class="stage-kicker" id="stageKicker"></p>
         <h2 class="stage-title" id="stageTitle"></h2>
         <div class="stage-meta" id="stageMeta"></div>
+        <div class="achievement-strip" id="achievementStrip"></div>
         <div class="stage-strip" id="stageStrip"></div>
       </section>
       <section class="story" id="stageStory"></section>
@@ -694,6 +773,10 @@
         <button class="icon-button" id="nextBtn" aria-label="下一站">›</button>
       </footer>
     </aside>
+
+    <button class="mobile-play-float" id="mobilePlayFloat" aria-label="播放轨迹">
+      <span id="mobilePlayIcon">▶</span>
+    </button>
   </main>
 
   <script>
@@ -875,9 +958,9 @@
         moments: [
           ["2023", "加盟利雅得胜利。"],
           ["2023", "随队赢得阿拉伯俱乐部冠军杯。"],
-          ["2023-24", "获得沙特联赛金靴，继续保持高进球产量。"],
-          ["2025-26", "截至 2026-01-30，各项赛事 22 场 27 球。"],
-          ["2025-26", "联赛 23 球、国王杯 1 球、亚冠二级联赛 2 球、沙超杯 1 球。"]
+          ["2023-24", "获得沙特联赛金靴，继续保持高进球产量。", "mobile-hide"],
+          ["2025-26", "截至 2026-01-30，各项赛事 22 场 27 球。", "mobile-hide"],
+          ["2025-26", "联赛 23 球、国王杯 1 球、亚冠二级联赛 2 球、沙超杯 1 球。", "mobile-hide"]
         ]
       }
     ];
@@ -1079,6 +1162,24 @@
       document.getElementById("stageKicker").textContent = data.kicker;
       document.getElementById("stageTitle").textContent = data.title;
       document.getElementById("stageMeta").innerHTML = data.meta.map((item) => `<span class="pill">${item}</span>`).join("");
+
+      const strip = document.getElementById("achievementStrip");
+      if (data.achievements && data.achievements.length >= 4) {
+        const compactItems = [
+          data.achievements[1],
+          data.achievements[2],
+          data.achievements[3]
+        ];
+        strip.innerHTML = compactItems.map((item) => `
+          <div class="strip-item">
+            <strong>${item[0]}</strong>
+            <span>${item[1]}</span>
+          </div>
+        `).join("");
+      } else {
+        strip.innerHTML = "";
+      }
+
       document.getElementById("stageStory").innerHTML = `
         ${data.summary ? `<p>${data.summary}</p>` : ""}
         <h3 class="moment-heading">${data.achievementsTitle}</h3>
@@ -1092,7 +1193,7 @@
         </div>
         ${data.moments && data.moments.length ? `<div class="moment-list">
           ${data.moments.map((moment) => `
-            <div class="moment">
+            <div class="moment${moment[2] ? ' ' + moment[2] : ''}">
               <time>${moment[0]}</time>
               <span>${moment[1]}</span>
             </div>
@@ -1388,8 +1489,7 @@
       const shouldRestart = !hasStartedJourney || current >= stages.length - 1;
       playing = true;
       hasStartedJourney = true;
-      document.getElementById("playIcon").textContent = "❚❚";
-      document.getElementById("playText").textContent = "暂停";
+      updatePlayButtons();
       if (shouldRestart) {
         current = 0;
         setStage(0, false);
@@ -1415,8 +1515,7 @@
       if (current === stages.length - 1) {
         fitCareerBoundsForFinalStage(false);
       }
-      document.getElementById("playIcon").textContent = "▶";
-      document.getElementById("playText").textContent = "播放轨迹";
+      updatePlayButtons();
     }
 
     document.getElementById("nextBtn").addEventListener("click", () => {
@@ -1442,6 +1541,27 @@
         startPlayback();
       }
     });
+
+    document.getElementById("mobilePlayFloat").addEventListener("click", () => {
+      if (playing) {
+        stopPlayback();
+      } else {
+        startPlayback();
+      }
+    });
+
+    function updatePlayButtons() {
+      const icon = playing ? "❚❚" : "▶";
+      document.getElementById("playIcon").textContent = icon;
+      document.getElementById("playText").textContent = playing ? "暂停" : "播放轨迹";
+      document.getElementById("mobilePlayIcon").textContent = icon;
+      const floatBtn = document.getElementById("mobilePlayFloat");
+      if (playing) {
+        floatBtn.classList.add("is-playing");
+      } else {
+        floatBtn.classList.remove("is-playing");
+      }
+    }
 
     document.getElementById("mobileHandle").addEventListener("click", () => {
       document.getElementById("storyPanel").classList.toggle("is-open");
